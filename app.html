@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameWatch — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0F172A; --surface: #1E293B; --green: #10B981; --amber: #F59E0B; --red: #EF4444;
+    --text: #E2E8F0; --muted: #94A3B8; --dim: #64748B; --purple: #8B5CF6;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text);
+    min-height: 100vh;
+  }
+  .app { max-width: 800px; margin: 0 auto; padding: 20px; }
+  
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 24px; }
+  .logo { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 800; 
+    background: linear-gradient(135deg, var(--green), #6EE7B7);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .logo-sub { font-size: 11px; color: var(--dim); letter-spacing: 0.5px; font-family: 'DM Sans', sans-serif; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  
+  /* Buttons */
+  .btn { padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-green { background: linear-gradient(135deg, var(--green), #059669); color: #fff; }
+  .btn-outline { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: var(--muted); }
+  .btn-pro { background: linear-gradient(135deg, var(--amber), var(--red)); color: #fff; font-weight: 700; letter-spacing: 0.5px; }
+  .btn-full { width: 100%; padding: 14px; font-size: 15px; border-radius: 12px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+  .tab { padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;
+    border: none; background: transparent; color: var(--muted); transition: all 0.2s; }
+  .tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  .tab.active { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  /* Status Banner */
+  .status-banner { border-radius: 14px; padding: 16px 20px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 14px; }
+  .status-banner.online { background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(6,78,59,0.15));
+    border: 1px solid rgba(16,185,129,0.2); }
+  .status-banner.offline { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+  .status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.on { background: var(--green); animation: pulse 2s ease-in-out infinite; }
+  .status-dot.off { background: #374151; }
+  .status-title { font-weight: 700; font-size: 15px; }
+  .status-sub { font-size: 12px; color: var(--dim); margin-top: 2px; }
+
+  /* Child Card */
+  .child-card { border-radius: 16px; padding: 20px; margin-bottom: 14px; transition: all 0.3s; }
+  .child-card.online { background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(30,41,59,0.8));
+    border: 1px solid rgba(16,185,129,0.15); }
+  .child-card.offline { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+  .child-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+  .child-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .child-info { display: flex; gap: 14px; align-items: center; }
+  .child-avatar { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center;
+    justify-content: center; font-size: 22px; font-weight: 700; color: #fff; transition: all 0.5s; }
+  .child-avatar.on { background: linear-gradient(135deg, var(--green), #059669); box-shadow: 0 4px 20px rgba(16,185,129,0.3); }
+  .child-avatar.off { background: linear-gradient(135deg, #374151, #1F2937); }
+  .child-name { font-weight: 700; font-size: 17px; }
+  .child-tag { font-size: 12px; padding: 2px 8px; border-radius: 6px; font-weight: 500; }
+  .child-remove { background: none; border: none; color: #475569; cursor: pointer; font-size: 18px; padding: 4px; }
+
+  /* Game Status Row */
+  .game-row { display: flex; align-items: center; justify-content: space-between;
+    background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px 14px; margin-top: 8px; }
+  .game-left { display: flex; align-items: center; gap: 10px; }
+  .game-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .game-name { font-size: 14px; font-weight: 500; }
+  .game-status { font-size: 12px; padding: 1px 7px; border-radius: 5px; font-weight: 500; }
+  .game-location { font-size: 12px; color: var(--muted); }
+  .game-right { display: flex; align-items: center; gap: 10px; }
+  .session-timer { font-size: 13px; font-weight: 500; padding: 2px 8px; border-radius: 6px; }
+  .time-ago { color: var(--muted); font-size: 13px; }
+
+  /* Add Form */
+  .add-btn { width: 100%; padding: 16px; border-radius: 14px; background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.1); color: var(--dim); font-size: 14px; font-weight: 500; cursor: pointer; }
+  .add-btn:hover { background: rgba(255,255,255,0.05); color: var(--muted); }
+  .add-form { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 24px; }
+  .add-form h3 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px; margin-bottom: 16px; }
+  .form-fields { display: flex; flex-direction: column; gap: 12px; }
+  .form-row { display: flex; gap: 10px; }
+  .input { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.3); color: var(--text); font-size: 14px; outline: none; font-family: 'DM Sans', sans-serif;
+    width: 100%; }
+  .input:focus { border-color: var(--green); }
+  select.input { flex: 0 0 auto; width: auto; }
+  .error { color: var(--red); font-size: 13px; }
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* Activity Log */
+  .log-empty { text-align: center; padding: 48px; color: #475569; background: rgba(255,255,255,0.02);
+    border-radius: 16px; border: 1px solid rgba(255,255,255,0.04); }
+  .log-empty .icon { font-size: 32px; margin-bottom: 12px; }
+  .log-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+    background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 6px; }
+  .log-time { font-size: 12px; color: var(--dim); white-space: nowrap; min-width: 60px; }
+  .log-title { font-size: 14px; font-weight: 500; }
+  .log-body { font-size: 12px; color: var(--muted); }
+
+  /* Info */
+  .info-box { margin-top: 24px; padding: 16px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+  .info-box.blue { background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.12); color: #818CF8; }
+  .info-box .pro-note { display: block; margin-top: 6px; color: var(--amber); }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .modal { background: linear-gradient(170deg, var(--surface), var(--bg)); border-radius: 20px;
+    padding: 32px; max-width: 420px; width: 100%; border: 1px solid rgba(245,158,11,0.2);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5); }
+  .modal-center { text-align: center; }
+  .modal h2 { font-family: 'Fraunces', serif; font-weight: 800; font-size: 24px; margin: 0 0 8px;
+    background: linear-gradient(135deg, var(--amber), var(--red));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .pro-feature { display: flex; gap: 10px; align-items: center; font-size: 14px; padding: 4px 0; }
+  .pro-feature .check { color: var(--green); }
+  .pro-features-list { margin: 24px 0; }
+  .trial-note { text-align: center; font-size: 12px; color: #475569; margin-top: 10px; }
+
+  .hidden { display: none; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @media (max-width: 600px) {
+    .form-row { flex-direction: column; }
+    select.input { width: 100%; }
+    .header { flex-wrap: wrap; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="logo">GameWatch</div>
+      <div class="logo-sub">PARENTAL GAME MONITOR</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-pro" id="proBtn" onclick="showUpgrade()">PRO</button>
+      <button class="btn btn-outline" id="alertBtn" onclick="enableNotifications()">🔕 Enable Alerts</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard',this)">Dashboard</button>
+    <button class="tab" data-tab="activity" onclick="switchTab('activity',this)" id="activityTab">Activity</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboardView">
+    <div class="status-banner offline" id="statusBanner">
+      <div class="status-dot off" id="statusDot"></div>
+      <div>
+        <div class="status-title" id="statusTitle">All quiet — no one is gaming right now</div>
+        <div class="status-sub" id="statusSub">Checking every 30 seconds • 0 profiles monitored</div>
+      </div>
+    </div>
+    <div id="childrenList"></div>
+    <button class="add-btn" id="addBtn" onclick="showAddForm()">+ Add a child to monitor</button>
+    <div class="add-form hidden" id="addForm">
+      <h3>Add Child Profile</h3>
+      <div class="form-fields">
+        <input class="input" placeholder="Child's name (e.g. Alex)" id="nameInput">
+        <div class="form-row">
+          <select class="input" id="gameSelect">
+            <option value="roblox">🎮 Roblox</option>
+            <option value="fortnite">🎯 Fortnite</option>
+            <option value="minecraft">⛏️ Minecraft</option>
+            <option value="apex">🔫 Apex Legends</option>
+            <option value="valorant">🎪 Valorant</option>
+          </select>
+          <input class="input" placeholder="Roblox username" id="usernameInput">
+        </div>
+        <div class="error hidden" id="formError"></div>
+        <div class="form-actions">
+          <button class="btn btn-outline" onclick="hideAddForm()">Cancel</button>
+          <button class="btn btn-green" onclick="addChild()">Add & Monitor</button>
+        </div>
+      </div>
+    </div>
+    <div class="info-box blue">
+      <strong>How it works:</strong> GameWatch checks your child's Roblox online status every 30 seconds using the public Roblox API. When they come online or start a game, you get an instant browser notification. Enable alerts above to get started.
+      <span class="pro-note" id="proNote">Free plan: 2 profiles, 30s polling. <strong>Pro ($4.99/mo):</strong> unlimited profiles, 10s polling, daily reports, screen time limits.</span>
+    </div>
+  </div>
+
+  <!-- Activity View -->
+  <div id="activityView" class="hidden">
+    <h2 style="font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin-bottom:16px">Activity Log</h2>
+    <div id="activityList">
+      <div class="log-empty"><div class="icon">📋</div><div>No activity yet. Events will appear here when your children come online.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Upgrade Modal -->
+<div class="modal-overlay hidden" id="upgradeModal" onclick="hideUpgrade()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-center">
+      <div style="font-size:40px;margin-bottom:12px">⚡</div>
+      <h2>GameWatch Pro</h2>
+      <p style="color:var(--muted);font-size:14px;margin:0 0 4px">Complete peace of mind for $4.99/month</p>
+    </div>
+    <div class="pro-features-list">
+      <div class="pro-feature"><span class="check">✓</span> Unlimited child profiles</div>
+      <div class="pro-feature"><span class="check">✓</span> 10-second status checks (3x faster)</div>
+      <div class="pro-feature"><span class="check">✓</span> Daily & weekly screen time reports</div>
+      <div class="pro-feature"><span class="check">✓</span> Configurable time limits & bedtime alerts</div>
+      <div class="pro-feature"><span class="check">✓</span> Multi-game tracking (Fortnite, Minecraft, etc.)</div>
+      <div class="pro-feature"><span class="check">✓</span> SMS & email notifications</div>
+    </div>
+    <!-- REPLACE THIS HREF WITH YOUR STRIPE PAYMENT LINK -->
+    <a href="STRIPE_PAYMENT_LINK_HERE" class="btn btn-pro btn-full" style="display:block;text-align:center;text-decoration:none">
+      Upgrade to Pro — $4.99/mo
+    </a>
+    <p class="trial-note">7-day free trial • Cancel anytime</p>
+  </div>
+</div>
+
+<script>
+const GAMES = {
+  roblox: { name: "Roblox", color: "#E2231A", icon: "🎮" },
+  fortnite: { name: "Fortnite", color: "#0095FF", icon: "🎯" },
+  minecraft: { name: "Minecraft", color: "#56A045", icon: "⛏️" },
+  apex: { name: "Apex Legends", color: "#CD3333", icon: "🔫" },
+  valorant: { name: "Valorant", color: "#FD4556", icon: "🎪" },
+};
+const STATUS = {
+  0: { label: "Offline", color: "#6B7280", dot: "#9CA3AF" },
+  1: { label: "Online", color: "#10B981", dot: "#34D399" },
+  2: { label: "In-Game", color: "#F59E0B", dot: "#FBBF24" },
+  3: { label: "In Studio", color: "#8B5CF6", dot: "#A78BFA" },
+};
+
+let children = JSON.parse(localStorage.getItem('gw_children') || '[]');
+let logs = JSON.parse(localStorage.getItem('gw_logs') || '[]');
+let prevStatuses = {};
+let notificationsOn = false;
+let isPro = localStorage.getItem('gw_pro') === '1';
+let pollTimer = null;
+
+function save() {
+  localStorage.setItem('gw_children', JSON.stringify(children));
+  localStorage.setItem('gw_logs', JSON.stringify(logs));
+}
+
+// === ROBLOX API ===
+async function resolveRobloxUser(username) {
+  try {
+    const r = await fetch("https://users.roblox.com/v1/usernames/users", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usernames: [username], excludeBannedUsers: false }),
+    });
+    const d = await r.json();
+    return d.data && d.data.length > 0 ? d.data[0].id : null;
+  } catch { return null; }
+}
+
+async function checkRobloxPresence(userIds) {
+  try {
+    const r = await fetch("https://presence.roblox.com/v1/presence/users", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userIds }),
+    });
+    const d = await r.json();
+    return d.userPresences || [];
+  } catch { return []; }
+}
+
+// === NOTIFICATIONS ===
+function sendNotification(title, body) {
+  if (notificationsOn && "Notification" in window) {
+    new Notification(title, { body, icon: "🎮" });
+  }
+  logs.unshift({ time: Date.now(), title, body });
+  if (logs.length > 50) logs = logs.slice(0, 50);
+  save();
+  updateActivityTab();
+  renderActivity();
+}
+
+async function enableNotifications() {
+  if ("Notification" in window) {
+    const p = await Notification.requestPermission();
+    notificationsOn = p === "granted";
+    document.getElementById('alertBtn').innerHTML = notificationsOn ? "🔔 Alerts On" : "🔕 Enable Alerts";
+    document.getElementById('alertBtn').style.borderColor = notificationsOn ? "rgba(16,185,129,0.3)" : "";
+    document.getElementById('alertBtn').style.color = notificationsOn ? "var(--green)" : "";
+    document.getElementById('alertBtn').style.background = notificationsOn ? "rgba(16,185,129,0.15)" : "";
+  }
+}
+
+// === POLLING ===
+async function pollAll() {
+  const robloxChecks = [];
+  for (const c of children) {
+    for (const a of c.accounts) {
+      if (a.game === 'roblox' && a.userId) robloxChecks.push({ childId: c.id, userId: a.userId, username: a.username });
+    }
+  }
+
+  if (robloxChecks.length > 0) {
+    const presences = await checkRobloxPresence(robloxChecks.map(c => c.userId));
+    for (const p of presences) {
+      const chk = robloxChecks.find(c => c.userId === p.userId);
+      if (!chk) continue;
+      const child = children.find(c => c.id === chk.childId);
+      if (!child) continue;
+
+      const key = child.id + '-roblox';
+      const prev = prevStatuses[key];
+      const now = p.userPresenceType;
+
+      if (!child.status) child.status = {};
+      child.status.roblox = { raw: now, ...STATUS[now], lastLocation: p.lastLocation || '' };
+
+      if (prev !== undefined && prev === 0 && now > 0) {
+        sendNotification(`🎮 ${child.name} is now online!`, `Just opened Roblox${p.lastLocation ? ' — playing ' + p.lastLocation : ''}`);
+        child.sessionStart = Date.now();
+      } else if (prev !== undefined && prev > 0 && now === 0) {
+        const dur = child.sessionStart ? Math.floor((Date.now() - child.sessionStart) / 60000) : 0;
+        sendNotification(`${child.name} went offline`, `Session lasted ${dur} minutes`);
+        child.lastSeen = Date.now();
+        child.sessionStart = null;
+      } else if (prev !== undefined && prev !== 2 && now === 2) {
+        sendNotification(`🕹️ ${child.name} started a game!`, `Now playing: ${p.lastLocation || 'Unknown'}`);
+      }
+      prevStatuses[key] = now;
+    }
+  }
+
+  save();
+  render();
+}
+
+function startPolling() {
+  clearInterval(pollTimer);
+  pollAll();
+  pollTimer = setInterval(pollAll, isPro ? 10000 : 30000);
+}
+
+// === RENDER ===
+function render() {
+  const anyOnline = children.some(c => c.status && Object.values(c.status).some(s => s.raw > 0));
+  const onlineCount = children.filter(c => c.status && Object.values(c.status).some(s => s.raw > 0)).length;
+
+  // Banner
+  const banner = document.getElementById('statusBanner');
+  const dot = document.getElementById('statusDot');
+  banner.className = 'status-banner ' + (anyOnline ? 'online' : 'offline');
+  dot.className = 'status-dot ' + (anyOnline ? 'on' : 'off');
+  document.getElementById('statusTitle').textContent = anyOnline
+    ? `${onlineCount} child${onlineCount > 1 ? 'ren' : ''} online now`
+    : 'All quiet — no one is gaming right now';
+  document.getElementById('statusSub').textContent = `Checking every ${isPro ? 10 : 30} seconds • ${children.length} profile${children.length !== 1 ? 's' : ''} monitored`;
+
+  // Children
+  const list = document.getElementById('childrenList');
+  list.innerHTML = '';
+  for (const child of children) {
+    const isOn = child.status && Object.values(child.status).some(s => s.raw > 0);
+    const card = document.createElement('div');
+    card.className = 'child-card ' + (isOn ? 'online' : 'offline');
+
+    let gamesHtml = '';
+    for (const acc of child.accounts) {
+      const st = (child.status && child.status[acc.game]) || { ...STATUS[0], raw: 0, lastLocation: '' };
+      const stColor = STATUS[st.raw] || STATUS[0];
+      const timerHtml = child.sessionStart && st.raw > 0 ? renderTimer(child.sessionStart) : '';
+      const agoHtml = !child.sessionStart && child.lastSeen ? renderAgo(child.lastSeen) : (child.sessionStart ? '' : '<span class="time-ago">—</span>');
+
+      gamesHtml += `
+        <div class="game-row">
+          <div class="game-left">
+            <div class="game-dot" style="background:${stColor.dot};${st.raw > 0 ? 'animation:pulse 2s ease-in-out infinite' : ''}"></div>
+            <span class="game-name">${GAMES[acc.game].name}</span>
+            <span class="game-status" style="background:${stColor.color}18;color:${stColor.color}">${stColor.label}</span>
+            ${st.lastLocation ? `<span class="game-location">— ${st.lastLocation}</span>` : ''}
+          </div>
+          <div class="game-right">${timerHtml || agoHtml}</div>
+        </div>`;
+    }
+
+    const tags = child.accounts.map(a =>
+      `<span class="child-tag" style="background:${GAMES[a.game].color}20;color:${GAMES[a.game].color}">${GAMES[a.game].icon} ${a.username}</span>`
+    ).join(' ');
+
+    card.innerHTML = `
+      <div class="child-header">
+        <div class="child-info">
+          <div class="child-avatar ${isOn ? 'on' : 'off'}">${child.name[0]}</div>
+          <div>
+            <div class="child-name">${child.name}</div>
+            <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">${tags}</div>
+          </div>
+        </div>
+        <button class="child-remove" onclick="removeChild('${child.id}')">×</button>
+      </div>
+      <div style="margin-top:12px">${gamesHtml}</div>`;
+    list.appendChild(card);
+  }
+
+  // Pro button
+  if (isPro) document.getElementById('proBtn').style.display = 'none';
+  if (isPro) document.getElementById('proNote').style.display = 'none';
+}
+
+function renderTimer(start) {
+  const diff = Math.floor((Date.now() - start) / 1000);
+  const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
+  const color = diff > 7200 ? 'var(--red)' : diff > 3600 ? 'var(--amber)' : 'var(--green)';
+  const bg = diff > 7200 ? 'rgba(239,68,68,0.1)' : diff > 3600 ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)';
+  let t = `${m}m ${String(s).padStart(2, '0')}s`;
+  if (h > 0) t = `${h}h ${t}`;
+  return `<span class="session-timer" style="color:${color};background:${bg}">${t}</span>`;
+}
+
+function renderAgo(ts) {
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  let t;
+  if (diff < 60) t = 'just now';
+  else if (diff < 3600) t = Math.floor(diff / 60) + 'm ago';
+  else if (diff < 86400) t = Math.floor(diff / 3600) + 'h ago';
+  else t = Math.floor(diff / 86400) + 'd ago';
+  return `<span class="time-ago">${t}</span>`;
+}
+
+function renderActivity() {
+  const el = document.getElementById('activityList');
+  if (logs.length === 0) {
+    el.innerHTML = '<div class="log-empty"><div class="icon">📋</div><div>No activity yet. Events will appear here when your children come online.</div></div>';
+    return;
+  }
+  el.innerHTML = logs.map(l => `
+    <div class="log-item">
+      <div class="log-time">${new Date(l.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+      <div><div class="log-title">${l.title}</div><div class="log-body">${l.body}</div></div>
+    </div>`).join('');
+}
+
+function updateActivityTab() {
+  document.getElementById('activityTab').textContent = 'Activity' + (logs.length ? ` (${logs.length})` : '');
+}
+
+// === ACTIONS ===
+function showAddForm() {
+  document.getElementById('addBtn').classList.add('hidden');
+  document.getElementById('addForm').classList.remove('hidden');
+}
+function hideAddForm() {
+  document.getElementById('addBtn').classList.remove('hidden');
+  document.getElementById('addForm').classList.add('hidden');
+  document.getElementById('formError').classList.add('hidden');
+}
+
+async function addChild() {
+  const name = document.getElementById('nameInput').value.trim();
+  const game = document.getElementById('gameSelect').value;
+  const username = document.getElementById('usernameInput').value.trim();
+  const errEl = document.getElementById('formError');
+
+  if (!name) { errEl.textContent = 'Enter a name'; errEl.classList.remove('hidden'); return; }
+  if (!username) { errEl.textContent = 'Enter a username'; errEl.classList.remove('hidden'); return; }
+  if (!isPro && children.length >= 2) { showUpgrade(); return; }
+
+  let userId = null;
+  if (game === 'roblox') {
+    errEl.textContent = 'Looking up username...'; errEl.style.color = 'var(--muted)'; errEl.classList.remove('hidden');
+    userId = await resolveRobloxUser(username);
+    errEl.style.color = '';
+    if (!userId) { errEl.textContent = 'Roblox username not found. Check spelling.'; return; }
+  }
+
+  children.push({
+    id: Date.now().toString(), name, accounts: [{ game, username, userId }],
+    status: {}, sessionStart: null, lastSeen: null,
+  });
+  save();
+  document.getElementById('nameInput').value = '';
+  document.getElementById('usernameInput').value = '';
+  hideAddForm();
+  sendNotification('Child added', `Now monitoring ${name}'s ${GAMES[game].name} activity`);
+  startPolling();
+}
+
+function removeChild(id) {
+  children = children.filter(c => c.id !== id);
+  save();
+  render();
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dashboardView').classList.toggle('hidden', tab !== 'dashboard');
+  document.getElementById('activityView').classList.toggle('hidden', tab !== 'activity');
+  if (tab === 'activity') renderActivity();
+}
+
+function showUpgrade() { document.getElementById('upgradeModal').classList.remove('hidden'); }
+function hideUpgrade() { document.getElementById('upgradeModal').classList.add('hidden'); }
+
+// Update select placeholder
+document.getElementById('gameSelect').addEventListener('change', function() {
+  document.getElementById('usernameInput').placeholder = GAMES[this.value].name + ' username';
+});
+
+// Live timer updates
+setInterval(() => { if (children.some(c => c.sessionStart)) render(); }, 1000);
+
+// Boot
+updateActivityTab();
+render();
+if (children.length > 0) startPolling();
+</script>
+</body>
+</html>

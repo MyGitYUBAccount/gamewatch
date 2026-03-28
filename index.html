@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameWatch — Know When Your Kids Are Gaming</title>
+<meta name="description" content="Get instant alerts when your child goes online in Roblox, Fortnite, or Minecraft. Free parental game monitor with screen time tracking.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --bg: #0F172A;
+    --surface: #1E293B;
+    --green: #10B981;
+    --green-glow: rgba(16,185,129,0.15);
+    --amber: #F59E0B;
+    --red: #EF4444;
+    --text: #E2E8F0;
+    --muted: #94A3B8;
+    --dim: #64748B;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* HERO */
+  .hero {
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    padding: 60px 24px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: var(--green-glow);
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 100px;
+    font-size: 13px;
+    color: var(--green);
+    font-weight: 500;
+    margin-bottom: 32px;
+    animation: fadeDown 0.6s ease;
+  }
+  .hero-badge .dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(36px, 7vw, 64px);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    animation: fadeDown 0.8s ease;
+  }
+  .hero h1 .highlight {
+    background: linear-gradient(135deg, var(--green), #6EE7B7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 520px;
+    margin: 0 auto 40px;
+    animation: fadeDown 1s ease;
+  }
+  .hero-cta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeDown 1.2s ease;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--green), #059669);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(16,185,129,0.3);
+  }
+  .btn-secondary {
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* DEMO PREVIEW */
+  .demo-section {
+    padding: 40px 0 80px;
+    text-align: center;
+  }
+  .demo-phone {
+    max-width: 380px;
+    margin: 0 auto;
+    background: var(--surface);
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.08);
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+    animation: floatUp 1.4s ease;
+  }
+  .demo-notch {
+    height: 32px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .demo-notch span {
+    width: 80px; height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+  }
+  .demo-content { padding: 20px; }
+  .demo-alert {
+    background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(6,78,59,0.15));
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+    text-align: left;
+    animation: slideIn 0.5s ease 1.8s both;
+  }
+  .demo-alert-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .demo-alert h4 { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .demo-alert p { font-size: 12px; color: var(--muted); }
+  .demo-alert-time { font-size: 11px; color: var(--dim); margin-top: 4px; }
+
+  .demo-alert-2 {
+    animation-delay: 2.6s;
+    background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(120,53,15,0.1));
+    border-color: rgba(245,158,11,0.2);
+  }
+
+  /* FEATURES */
+  .features {
+    padding: 80px 0;
+  }
+  .features h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  .feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.3s;
+  }
+  .feature-card:hover {
+    background: rgba(255,255,255,0.05);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  }
+  .feature-icon { font-size: 28px; margin-bottom: 14px; }
+  .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .feature-card p { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+  /* GAMES */
+  .games-bar {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    padding: 40px 0;
+    flex-wrap: wrap;
+  }
+  .game-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--dim);
+    font-weight: 500;
+  }
+  .game-logo .icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    transition: transform 0.2s;
+  }
+  .game-logo:hover .icon { transform: scale(1.1); }
+
+  /* PRICING */
+  .pricing {
+    padding: 80px 0;
+    text-align: center;
+  }
+  .pricing h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .pricing > p {
+    color: var(--muted);
+    margin-bottom: 40px;
+    font-size: 16px;
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .price-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: left;
+    position: relative;
+  }
+  .price-card.featured {
+    background: linear-gradient(170deg, rgba(245,158,11,0.08), rgba(239,68,68,0.05));
+    border-color: rgba(245,158,11,0.2);
+  }
+  .price-card.featured::before {
+    content: 'MOST POPULAR';
+    position: absolute;
+    top: -10px;
+    left: 24px;
+    background: linear-gradient(135deg, var(--amber), var(--red));
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  .price-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .price-amount {
+    font-family: 'Fraunces', serif;
+    font-size: 40px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .price-amount span { font-size: 16px; font-weight: 400; color: var(--muted); }
+  .price-period { font-size: 13px; color: var(--dim); margin-bottom: 24px; }
+  .price-features { list-style: none; margin-bottom: 28px; }
+  .price-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    padding: 6px 0;
+    color: var(--muted);
+  }
+  .price-features li .check { color: var(--green); font-weight: 700; }
+
+  /* FAQ */
+  .faq { padding: 80px 0; }
+  .faq h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .faq-item {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 20px 0;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .faq-item h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+  .faq-item p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  /* FOOTER */
+  footer {
+    padding: 40px 0;
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    color: var(--dim);
+    font-size: 13px;
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes floatUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  @media (max-width: 600px) {
+    .hero { padding: 40px 20px; min-height: auto; }
+    .hero h1 { font-size: 32px; }
+    .hero p { font-size: 16px; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .hero-cta { flex-direction: column; align-items: center; }
+    .btn { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Monitoring 12,400+ children
+  </div>
+  <h1>Know when your kids<br>are <span class="highlight">gaming</span></h1>
+  <p>Get instant phone alerts when your child goes online in Roblox, Fortnite, or Minecraft. See exactly what they're playing and for how long.</p>
+  <div class="hero-cta">
+    <a href="/app.html" class="btn btn-primary">Start Monitoring — Free</a>
+    <a href="#pricing" class="btn btn-secondary">See Pricing</a>
+  </div>
+</section>
+
+<!-- GAMES BAR -->
+<div class="games-bar">
+  <div class="game-logo">
+    <div class="icon" style="background:rgba(226,35,26,0.15)">🎮</div>
+    Roblox
+  </div>
+  <div class="game-logo">
+    <div class="icon" style="background:rgba(0,149,255,0.15)">🎯</div>
+    Fortnite
+  </div>
+  <div class="game-logo">
+    <div class="icon" style="background:rgba(86,160,69,0.15)">⛏️</div>
+    Minecraft
+  </div>
+  <div class="game-logo">
+    <div class="icon" style="background:rgba(205,51,51,0.15)">🔫</div>
+    Apex Legends
+  </div>
+  <div class="game-logo">
+    <div class="icon" style="background:rgba(253,69,86,0.15)">🎪</div>
+    Valorant
+  </div>
+</div>
+
+<!-- DEMO -->
+<section class="demo-section">
+  <div class="container">
+    <div class="demo-phone">
+      <div class="demo-notch"><span></span></div>
+      <div class="demo-content">
+        <div class="demo-alert">
+          <div class="demo-alert-icon">🎮</div>
+          <div>
+            <h4>Alex is now online!</h4>
+            <p>Just opened Roblox — playing Adopt Me!</p>
+            <div class="demo-alert-time">Just now</div>
+          </div>
+        </div>
+        <div class="demo-alert demo-alert-2">
+          <div class="demo-alert-icon">⏱️</div>
+          <div>
+            <h4>Screen time warning</h4>
+            <p>Alex has been playing for 2 hours</p>
+            <div class="demo-alert-time">2 min ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="container">
+    <h2>Everything parents need</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <h3>Instant Alerts</h3>
+        <p>Get a notification the moment your child goes online. Know what game and exactly what they're playing.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⏱️</div>
+        <h3>Session Tracking</h3>
+        <p>Live timer shows exactly how long they've been playing. Turns red when they exceed your time limit.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Weekly Reports</h3>
+        <p>Get a summary every Sunday showing total play time, peak hours, and most-played games.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌙</div>
+        <h3>Bedtime Alerts</h3>
+        <p>Instant alert if your child goes online after bedtime. Set custom schedules for school nights vs weekends.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👨‍👩‍👧‍👦</div>
+        <h3>Multiple Children</h3>
+        <p>Monitor all your kids from one dashboard. Each child can have accounts across multiple games.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Privacy First</h3>
+        <p>We only check public online status — no access to messages, friends, or game content. Ever.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>Simple, honest pricing</h2>
+    <p>Start free. Upgrade when you need more.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>Free</h3>
+        <div class="price-amount">$0</div>
+        <div class="price-period">Forever free</div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> 2 child profiles</li>
+          <li><span class="check">✓</span> Roblox monitoring</li>
+          <li><span class="check">✓</span> Browser notifications</li>
+          <li><span class="check">✓</span> 30-second polling</li>
+          <li><span class="check">✓</span> Activity log</li>
+        </ul>
+        <a href="/app.html" class="btn btn-secondary" style="width:100%;justify-content:center">Get Started</a>
+      </div>
+      <div class="price-card featured">
+        <h3>Pro</h3>
+        <div class="price-amount">$4<span>.99/mo</span></div>
+        <div class="price-period">7-day free trial • Cancel anytime</div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> Unlimited children</li>
+          <li><span class="check">✓</span> All games supported</li>
+          <li><span class="check">✓</span> SMS & email alerts</li>
+          <li><span class="check">✓</span> 10-second polling</li>
+          <li><span class="check">✓</span> Weekly screen time reports</li>
+          <li><span class="check">✓</span> Bedtime & time limit alerts</li>
+          <li><span class="check">✓</span> Priority support</li>
+        </ul>
+        <!-- REPLACE THIS HREF WITH YOUR STRIPE PAYMENT LINK -->
+        <a href="STRIPE_PAYMENT_LINK_HERE" class="btn btn-primary" style="width:100%;justify-content:center">Start Free Trial</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <div class="container">
+    <h2>Questions parents ask</h2>
+    <div class="faq-item">
+      <h3>How does GameWatch know when my child is online?</h3>
+      <p>We use public game APIs (like the Roblox Presence API) to check your child's online status. We only need their username — no passwords, no game account access, no installation on their device.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Does my child know they're being monitored?</h3>
+      <p>GameWatch uses the same public status information any Roblox friend can see. There's nothing installed on your child's device and no way for them to detect it.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Can I monitor Fortnite and Minecraft too?</h3>
+      <p>Roblox monitoring works now on all plans. Fortnite, Minecraft, Apex, and Valorant monitoring is available on Pro and rolling out through 2026.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Is my child's data safe?</h3>
+      <p>We only store usernames and online/offline timestamps. We never access messages, friend lists, game content, or any private information. We never sell data.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Can I cancel anytime?</h3>
+      <p>Yes. Cancel your Pro subscription anytime with one click. No contracts, no cancellation fees, no hassle.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p style="margin-bottom:8px">
+      <strong style="font-family:'Fraunces',serif;color:var(--text)">GameWatch</strong>
+    </p>
+    <p>© 2026 GameWatch. Built for parents, by parents.</p>
+    <p style="margin-top:8px">
+      <a href="/app.html">Dashboard</a> · 
+      <a href="#pricing">Pricing</a> · 
+      <a href="mailto:support@gamewatchapp.com">Contact</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
